@@ -2,38 +2,41 @@ package model
 
 import (
 	"encoding/json"
-	"gorm.io/gorm"
 	"one-api/common"
 
 	"gorm.io/gorm"
 )
 
 type Channel struct {
-	Id                 int     `json:"id"`
-	Type               int     `json:"type" gorm:"default:0"`
-	Key                string  `json:"key" gorm:"not null"`
-	OpenAIOrganization *string `json:"openai_organization"`
-	TestModel          *string `json:"test_model"`
-	Status             int     `json:"status" gorm:"default:1"`
-	Name               string  `json:"name" gorm:"index"`
-	Weight             *uint   `json:"weight" gorm:"default:0"`
-	CreatedTime        int64   `json:"created_time" gorm:"bigint"`
-	TestTime           int64   `json:"test_time" gorm:"bigint"`
-	ResponseTime       int     `json:"response_time"` // in milliseconds
-	BaseURL            *string `json:"base_url" gorm:"column:base_url;default:''"`
-	Other              string  `json:"other"`
-	Balance            float64 `json:"balance"` // in USD
-	BalanceUpdatedTime int64   `json:"balance_updated_time" gorm:"bigint"`
-	Models             string  `json:"models"`
-	Group              string  `json:"group" gorm:"type:varchar(64);default:'default'"`
-	UsedQuota          int64   `json:"used_quota" gorm:"bigint;default:0"`
-	ModelMapping       *string `json:"model_mapping" gorm:"type:varchar(1024);default:''"`
-	//MaxInputTokens     *int    `json:"max_input_tokens" gorm:"default:0"`
-	StatusCodeMapping *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`
-	Priority          *int64  `json:"priority" gorm:"bigint;default:0"`
-	AutoBan           *int    `json:"auto_ban" gorm:"default:1"`
-	IsImage           *bool   `json:"is_image" gorm:"default:false"`
-	OtherInfo         string  `json:"other_info"`
+	Id                    int     `json:"id"`
+	Type                  int     `json:"type" gorm:"default:0"`
+	Key                   string  `json:"key" gorm:"not null"`
+	OpenAIOrganization    *string `json:"openai_organization"`
+	TestModel             *string `json:"test_model"`
+	Status                int     `json:"status" gorm:"default:1"`
+	Name                  string  `json:"name" gorm:"index"`
+	Weight                *uint   `json:"weight" gorm:"default:0"`
+	CreatedTime           int64   `json:"created_time" gorm:"bigint"`
+	TestTime              int64   `json:"test_time" gorm:"bigint"`
+	ResponseTime          int     `json:"response_time"` // in milliseconds
+	BaseURL               *string `json:"base_url" gorm:"column:base_url;default:''"`
+	Other                 string  `json:"other"`
+	Balance               float64 `json:"balance"` // in USD
+	BalanceUpdatedTime    int64   `json:"balance_updated_time" gorm:"bigint"`
+	Models                string  `json:"models"`
+	Group                 string  `json:"group" gorm:"type:varchar(64);default:'default'"`
+	UsedQuota             int64   `json:"used_quota" gorm:"bigint;default:0"`
+	ModelMapping          *string `json:"model_mapping" gorm:"type:varchar(1024);default:''"`
+	MaxInputTokens        *int    `json:"max_input_tokens" gorm:"default:0"`
+	StatusCodeMapping     *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`
+	Priority              *int64  `json:"priority" gorm:"bigint;default:0"`
+	AutoBan               *int    `json:"auto_ban" gorm:"default:1"`
+	IsImage               *bool   `json:"is_image" gorm:"default:false"`
+	OtherInfo             string  `json:"other_info"`
+	IsSupportStream       *bool   `json:"is_support_stream" gorm:"default:false"`
+	IsSupportSystemPrompt *bool   `json:"is_support_system_prompt" gorm:"default:false"`
+	IsSupportNORLogprobs  *bool   `json:"is_support_nor_logprobs" gorm:"default:false"`
+	IsSupportFunctionCall *bool   `json:"is_support_function_call" gorm:"default:false"`
 }
 
 func (channel *Channel) GetOtherInfo() map[string]interface{} {
@@ -58,15 +61,6 @@ func (channel *Channel) SetOtherInfo(otherInfo map[string]interface{}) {
 
 func (channel *Channel) Save() error {
 	return DB.Save(channel).Error
-	StatusCodeMapping     *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`
-	Priority              *int64  `json:"priority" gorm:"bigint;default:0"`
-	AutoBan               *int    `json:"auto_ban" gorm:"default:1"`
-	IsImage               *bool   `json:"is_image" gorm:"default:false"`
-	MaxInputTokens        *int    `json:"max_input_tokens" gorm:"default:0"`
-	IsSupportStream       *bool   `json:"is_support_stream" gorm:"default:false"`
-	IsSupportSystemPrompt *bool   `json:"is_support_system_prompt" gorm:"default:false"`
-	IsSupportNORLogprobs  *bool   `json:"is_support_nor_logprobs" gorm:"default:false"`
-	IsSupportFunctionCall *bool   `json:"is_support_function_call" gorm:"default:false"`
 }
 
 func GetAllChannels(startIdx int, num int, selectAll bool, idSort bool) ([]*Channel, error) {
