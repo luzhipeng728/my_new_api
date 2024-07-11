@@ -897,9 +897,8 @@ const EditChannel = (props) => {
               <Typography.Text strong>is_support_function_call</Typography.Text>
             </Space>
           </div>
-          {inputs.type !== 3 && inputs.type !== 8 && inputs.type !== 22 && (
+          {/* {inputs.type !== 3 && inputs.type !== 8 && inputs.type !== 22 && ( */}
           {inputs.type !== 3 && inputs.type !== 8 && inputs.type !== 22 && inputs.type !== 36 && (
-
             <>
               <div style={{ marginTop: 10 }}>
                 <Typography.Text strong>代理：</Typography.Text>
