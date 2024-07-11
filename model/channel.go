@@ -58,6 +58,15 @@ func (channel *Channel) SetOtherInfo(otherInfo map[string]interface{}) {
 
 func (channel *Channel) Save() error {
 	return DB.Save(channel).Error
+	StatusCodeMapping     *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`
+	Priority              *int64  `json:"priority" gorm:"bigint;default:0"`
+	AutoBan               *int    `json:"auto_ban" gorm:"default:1"`
+	IsImage               *bool   `json:"is_image" gorm:"default:false"`
+	MaxInputTokens        *int    `json:"max_input_tokens" gorm:"default:0"`
+	IsSupportStream       *bool   `json:"is_support_stream" gorm:"default:false"`
+	IsSupportSystemPrompt *bool   `json:"is_support_system_prompt" gorm:"default:false"`
+	IsSupportNORLogprobs  *bool   `json:"is_support_nor_logprobs" gorm:"default:false"`
+	IsSupportFunctionCall *bool   `json:"is_support_function_call" gorm:"default:false"`
 }
 
 func GetAllChannels(startIdx int, num int, selectAll bool, idSort bool) ([]*Channel, error) {

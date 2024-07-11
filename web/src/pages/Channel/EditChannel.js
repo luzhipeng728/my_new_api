@@ -78,11 +78,27 @@ const EditChannel = (props) => {
     models: [],
     auto_ban: 1,
     is_image: false,
+
+	// MaxInputTokens        *int   `json:"max_input_tokens" gorm:"default:0"`
+	// IsSupportStream       *bool  `json:"is_support_stream" gorm:"default:false"`
+	// IsSupportSystemPrompt *bool  `json:"is_support_system_prompt" gorm:"default:false"`
+	// IsSupportNORLogprobs  *bool  `json:"is_support_nor_logprobs" gorm:"default:false"`
+	// IsSupportFunctionCall *bool  `json:"is_support_function_call" gorm:"default:false"`
+    max_input_tokens: 0,
+    is_support_stream: false,
+    is_support_system_prompt: false,
+    is_support_n_or_logprobs: false,
+    is_support_function_call: false,
     test_model: '',
     groups: ['default'],
   };
   const [batch, setBatch] = useState(false);
   const [is_image, setImage] = useState(false)
+  const [max_input_tokens, setMaxInputTokens] = useState(0)
+  const [is_support_stream, setIsSupportStream] = useState(false)
+  const [is_support_system_prompt, setIsSupportSystemPrompt] = useState(false)
+  const [is_support_n_or_logprobs, setIsSupportNOrLogprobs] = useState(false)
+  const [is_support_function_call, setIsSupportFunctionCall] = useState(false)
   const [autoBan, setAutoBan] = useState(true);
   // const [autoBan, setAutoBan] = useState(true);
   const [inputs, setInputs] = useState(originInputs);
@@ -181,6 +197,21 @@ const EditChannel = (props) => {
         setImage(false);
       } else {
         setImage(true);
+      }
+      if (data.max_input_tokens){
+        setMaxInputTokens(data.max_input_tokens)
+      }
+      if (data.is_support_stream){
+        setIsSupportStream(data.is_support_stream)
+      }
+      if (data.is_support_system_prompt){
+        setIsSupportSystemPrompt(data.is_support_system_prompt)
+      }
+      if (data.is_support_n_or_logprobs){
+        setIsSupportNOrLogprobs(data.is_support_n_or_logprobs)
+      }
+      if (data.is_support_function_call){
+        setIsSupportFunctionCall(data.is_support_function_call)
       }
       setBasicModels(getChannelModels(data.type));
       // console.log(data);
@@ -339,6 +370,11 @@ const EditChannel = (props) => {
     }
     localInputs.auto_ban = autoBan ? 1 : 0;
     localInputs.is_image = is_image ? true : false;
+    localInputs.max_input_tokens = max_input_tokens;
+    localInputs.is_support_stream = is_support_stream;
+    localInputs.is_support_system_prompt = is_support_system_prompt;
+    localInputs.is_support_n_or_logprobs = is_support_n_or_logprobs;
+    localInputs.is_support_function_call = is_support_function_call;
     localInputs.models = localInputs.models.join(',');
     localInputs.group = localInputs.groups.join(',');
     if (isEdit) {
@@ -801,6 +837,64 @@ const EditChannel = (props) => {
                 onChange={() => setImage(!is_image)}
               />
               <Typography.Text strong>is_image</Typography.Text>
+            </Space>
+          </div>
+          <div style={{ marginTop: 10 , display: 'flex'}}>
+            <Space>
+              <Input
+                label='最大请求token'
+                name='max_input_tokens'
+                placeholder='默认为0，表示不限制'
+                onChange={(value) => {
+                  setMaxInputTokens(value);
+                }}
+                value={max_input_tokens}
+              />
+              <Typography.Text strong>最大请求token（0表示不限制）：</Typography.Text>
+            </Space>
+          </div>
+          <div style={{ marginTop: 10 , display: 'flex'}}>
+            <Space>
+              <Checkbox
+                checked={is_support_stream}
+                label='is_support_stream'
+                name='is_support_stream'
+                onChange={() => setIsSupportStream(!is_support_stream)}
+              />
+              <Typography.Text strong>is_support_stream</Typography.Text>
+            </Space>
+          </div>
+          <div style={{ marginTop: 10 , display: 'flex'}}>
+            <Space>
+              <Checkbox
+                checked={is_support_system_prompt}
+                label='is_support_system_prompt'
+                name='is_support_system_prompt'
+                onChange={() => setIsSupportSystemPrompt(!is_support_system_prompt)}
+              />
+              <Typography.Text strong>is_support_system_prompt</Typography.Text>
+            </Space>
+          </div>
+          <div style={{ marginTop: 10 , display: 'flex'}}>
+            <Space>
+              <Checkbox
+                checked={is_support_n_or_logprobs}
+                label='is_support_n_or_logprobs'
+                name='is_support_n_or_logprobs'
+                onChange={() => setIsSupportNOrLogprobs(!is_support_n_or_logprobs)}
+              />
+              <Typography.Text strong>is_support_n_or_logprobs</Typography.Text>
+            </Space>
+          </div>
+          <div style={{ marginTop: 10 , display: 'flex'}}>
+            <Space>
+              <Checkbox
+                checked={is_support_function_call}
+                label='is_support_function_call'
+                name='is_support_function_call'
+                onChange={() => setIsSupportFunctionCall(!is_support_function_call)}
+              />
+              <Typography.Text strong>is_support_function_call</Typography.Text>
             </Space>
           </div>
           {inputs.type !== 3 && inputs.type !== 8 && inputs.type !== 22 && (

@@ -29,7 +29,7 @@ var modelmapper = map[string]string{
 	"gpt-4-turbo-preview": "gpt-4-0125-preview",
 }
 
-func OpenaiStreamHandler(c *gin.Context, resp *http.Response, relayMode int, model string) (*dto.OpenAIErrorWithStatusCode, string, int) {
+func OpenaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo, model string) (*dto.OpenAIErrorWithStatusCode, string, int) {
 	//checkSensitive := constant.ShouldCheckCompletionSensitive()
 	modelName := model
 	if v, ok := modelmapper[model]; ok {

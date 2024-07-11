@@ -11,13 +11,18 @@ import (
 )
 
 type Ability struct {
-	Group     string `json:"group" gorm:"type:varchar(64);primaryKey;autoIncrement:false"`
-	Model     string `json:"model" gorm:"type:varchar(64);primaryKey;autoIncrement:false"`
-	ChannelId int    `json:"channel_id" gorm:"primaryKey;autoIncrement:false;index"`
-	Enabled   bool   `json:"enabled"`
-	Priority  *int64 `json:"priority" gorm:"bigint;default:0;index"`
-	Weight    uint   `json:"weight" gorm:"default:0;index"`
-	IsImage   bool   `json:"is_image" gorm:"default:false"`
+	Group                 string `json:"group" gorm:"type:varchar(64);primaryKey;autoIncrement:false"`
+	Model                 string `json:"model" gorm:"type:varchar(64);primaryKey;autoIncrement:false"`
+	ChannelId             int    `json:"channel_id" gorm:"primaryKey;autoIncrement:false;index"`
+	Enabled               bool   `json:"enabled"`
+	Priority              *int64 `json:"priority" gorm:"bigint;default:0;index"`
+	Weight                uint   `json:"weight" gorm:"default:0;index"`
+	IsImage               bool   `json:"is_image" gorm:"default:false"`
+	MaxInputTokens        *int   `json:"max_input_tokens" gorm:"default:0"`
+	IsSupportStream       *bool  `json:"is_support_stream" gorm:"default:false"`
+	IsSupportSystemPrompt *bool  `json:"is_support_system_prompt" gorm:"default:false"`
+	IsSupportNORLogprobs  *bool  `json:"is_support_nor_logprobs" gorm:"default:false"`
+	IsSupportFunctionCall *bool  `json:"is_support_function_call" gorm:"default:false"`
 }
 
 func GetGroupModels(group string) []string {
@@ -95,18 +100,37 @@ func getChannelQuery(group string, model string, retry int) *gorm.DB {
 	return channelQuery
 }
 
-func GetRandomSatisfiedChannel(group string, model string, retry int, isImage bool) (*Channel, error) {
+func GetRandomSatisfiedChannel(group string, model string, retry int, isImage bool, isStream bool, isSystemPrompt bool, isNORLogprobs bool, isFunctionCall bool) (*Channel, error) {
 	var abilities []Ability
 
 	var err error = nil
 	channelQuery := getChannelQuery(group, model, retry)
+	// if isImage {
+	// 	fmt.Println("这边要过滤掉不是图片的")
+	// 	channelQuery = channelQuery.Where("is_image = ?", true)
+	// } else {
+	// 	fmt.Println("这边要过滤掉是图片的")
+	// 	channelQuery = channelQuery.Where("is_image = ?", false)
+	// }
+	// 这里 根据 isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall 过滤
+	// 如果 需要 过滤的字段 是 true, 则过滤掉不是 true 的
 	if isImage {
-		fmt.Println("这边要过滤掉不是图片的")
 		channelQuery = channelQuery.Where("is_image = ?", true)
-	} else {
-		fmt.Println("这边要过滤掉是图片的")
-		channelQuery = channelQuery.Where("is_image = ?", false)
 	}
+	if isStream {
+		channelQuery = channelQuery.Where("is_support_stream = ?", true)
+	}
+	if isSystemPrompt {
+		channelQuery = channelQuery.Where("is_support_system_prompt = ?", true)
+	}
+	if isNORLogprobs {
+		channelQuery = channelQuery.Where("is_support_nor_logprobs = ?", true)
+	}
+	if isFunctionCall {
+		channelQuery = channelQuery.Where("is_support_function_call = ?", true)
+	}
+	// 打印下 channelQuery
+	fmt.Println(channelQuery)
 	if common.UsingSQLite || common.UsingPostgreSQL {
 		err = channelQuery.Order("weight DESC").Find(&abilities).Error
 	} else {
@@ -146,12 +170,18 @@ func (channel *Channel) AddAbilities() error {
 	for _, model := range models_ {
 		for _, group := range groups_ {
 			ability := Ability{
-				Group:     group,
-				Model:     model,
-				ChannelId: channel.Id,
-				Enabled:   channel.Status == common.ChannelStatusEnabled,
-				Priority:  channel.Priority,
-				Weight:    uint(channel.GetWeight()),
+				Group:                 group,
+				Model:                 model,
+				ChannelId:             channel.Id,
+				Enabled:               channel.Status == common.ChannelStatusEnabled,
+				Priority:              channel.Priority,
+				Weight:                uint(channel.GetWeight()),
+				IsImage:               *channel.IsImage,
+				IsSupportStream:       channel.IsSupportStream,
+				IsSupportSystemPrompt: channel.IsSupportSystemPrompt,
+				IsSupportNORLogprobs:  channel.IsSupportNORLogprobs,
+				IsSupportFunctionCall: channel.IsSupportFunctionCall,
+				MaxInputTokens:        channel.MaxInputTokens,
 			}
 			abilities = append(abilities, ability)
 		}

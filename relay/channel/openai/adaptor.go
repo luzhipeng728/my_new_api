@@ -84,7 +84,7 @@ func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, info *relaycom
 	if info.IsStream {
 		var responseText string
 		var toolCount int
-		err, responseText, toolCount = OpenaiStreamHandler(c, resp, info.RelayMode, info.OriginMoelName)
+		err, responseText, toolCount = OpenaiStreamHandler(c, resp, info, info.OriginMoelName)
 		usage, _ = service.ResponseText2Usage(responseText, info.UpstreamModelName, info.PromptTokens)
 		usage.CompletionTokens += toolCount * 7
 	} else {

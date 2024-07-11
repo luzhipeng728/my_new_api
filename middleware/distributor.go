@@ -83,10 +83,31 @@ func Distribute() func(c *gin.Context) {
 			// 解析 JSON 请求数据
 			// 检查是否有 messages 字段并解析
 			isImage := false
+			isStream := false
+			isSystemPrompt := false
+			isNORLogprobs := false
+			isFunctionCall := false
 			var requestData map[string]interface{}
 			if err := json.Unmarshal(bodyBytes, &requestData); err != nil {
 				fmt.Println("解析 JSON 请求数据失败")
 			} else {
+				// 如果 包含 stream 字段，查看是否是 true
+				if stream, exists := requestData["stream"]; exists {
+					if stream == true {
+						isStream = true
+					}
+				}
+				// 如果 包含 logprobs 字段，查看是否是 NOR
+				if _, exists := requestData["logprobs"]; exists {
+					isNORLogprobs = true
+				}
+				// 如果 包含 n 字段，如果不是 1， isNORLogprobs 为 true
+				if n, exists := requestData["n"]; exists {
+					if n != 1 {
+						isNORLogprobs = true
+					}
+				}
+				// 如果 messages 是数组，遍历每个 message
 				if messages, ok := requestData["messages"].([]interface{}); ok {
 					for _, message := range messages {
 						if msgMap, ok := message.(map[string]interface{}); ok {
@@ -97,13 +118,19 @@ func Distribute() func(c *gin.Context) {
 										if itemMap, ok := item.(map[string]interface{}); ok {
 											if t, exists := itemMap["type"]; exists && t == "image_url" {
 												isImage = true
-												break
 											}
 										}
 									}
 								}
-								if isImage {
-									break
+							}
+							// 如果tool_calls存在，说明是FunctionCall
+							if _, exists := msgMap["tool_calls"]; exists {
+								isFunctionCall = true
+							}
+							// 如果包含 role 字段，查看是否是 system
+							if role, exists := msgMap["role"]; exists {
+								if role == "system" {
+									isSystemPrompt = true
 								}
 							}
 						}
@@ -111,7 +138,7 @@ func Distribute() func(c *gin.Context) {
 				}
 			}
 			if shouldSelectChannel {
-				channel, err = model.CacheGetRandomSatisfiedChannel(userGroup, modelRequest.Model, 0, isImage)
+				channel, err = model.CacheGetRandomSatisfiedChannel(userGroup, modelRequest.Model, 0, isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall)
 				if err != nil {
 					message := fmt.Sprintf("当前分组 %s 下对于模型 %s 无可用渠道", userGroup, modelRequest.Model)
 					// 如果错误，但是渠道不为空，说明是数据库一致性问题
