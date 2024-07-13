@@ -83,12 +83,22 @@ func Relay(c *gin.Context) {
 				}
 			}
 			// 如果 包含 logprobs 字段，查看是否是 NOR
-			if _, exists := requestData["logprobs"]; exists {
-				isNORLogprobs = true
+			if logprobs, exists := requestData["logprobs"]; exists {
+				// 打印下 logprobs 的值
+				// fmt.Println("logprobs: ", logprobs)
+				if logprobs == true {
+					isNORLogprobs = true
+				}
 			}
 			// 如果 包含 n 字段，如果不是 1， isNORLogprobs 为 true
 			if n, exists := requestData["n"]; exists {
-				if n != 1 {
+				// 转换成int类型,转换失败就是1
+				tmp_n := 1
+				if n_int, ok := n.(int); ok {
+					tmp_n = n_int
+				}
+
+				if tmp_n != 1 {
 					isNORLogprobs = true
 				}
 			}
@@ -307,13 +317,23 @@ func RelayTask(c *gin.Context) {
 					isStream = true
 				}
 			}
-			// 如果 包含 logprobs 字段，查看是否是 NOR
-			if _, exists := requestData["logprobs"]; exists {
-				isNORLogprobs = true
+			// 如果 包含 logprobs 字段，查看是否是 true
+			if logprobs, exists := requestData["logprobs"]; exists {
+				// fmt.Println("logprobs: ", logprobs)
+				// 打印下 logprobs 的值
+				if logprobs == true {
+					isNORLogprobs = true
+				}
 			}
 			// 如果 包含 n 字段，如果不是 1， isNORLogprobs 为 true
 			if n, exists := requestData["n"]; exists {
-				if n != 1 {
+				// 转换成int类型,转换失败就是1
+				tmp_n := 1
+				if n_int, ok := n.(int); ok {
+					tmp_n = n_int
+				}
+
+				if tmp_n != 1 {
 					isNORLogprobs = true
 				}
 			}

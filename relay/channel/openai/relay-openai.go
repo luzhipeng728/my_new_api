@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
+	"math/rand"
 	"net/http"
 	"one-api/common"
-	"one-api/constant"
 	"one-api/dto"
 	relaycommon "one-api/relay/common"
 	relayconstant "one-api/relay/constant"
@@ -21,12 +22,48 @@ import (
 )
 
 var modelmapper = map[string]string{
-	"gpt-4-turbo":         "gpt-4-turbo-2024-04-09",
-	"gpt-4":               "gpt-4-0613",
-	"gpt-3.5-turbo":       "gpt-3.5-turbo-0125",
+	"gpt-3.5-turbo ":      "gpt-3.5-turbo-0125",
 	"gpt-3.5-turbo-16k":   "gpt-3.5-turbo-16k-0613",
+	"gpt-4":               "gpt-4-0613",
 	"gpt-4-32k":           "gpt-4-32k-0613",
 	"gpt-4-turbo-preview": "gpt-4-0125-preview",
+	"gpt-4-turbo":         "gpt-4-turbo-2024-04-09",
+	"gpt-4o":              "gpt-4o-2024-05-13",
+}
+
+const (
+	dictionary = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	idLength   = 5
+)
+
+func GenerateID(timestamp int64) string {
+	timestamp -= 1567879599
+	fmt.Println(timestamp)
+	var result strings.Builder
+	for i := idLength - 1; i >= 0; i-- {
+		index := int(math.Mod(float64(timestamp), float64(len(dictionary))))
+		fmt.Println("index_1: ", index)
+		result.WriteByte(dictionary[index-1])
+		timestamp = timestamp / int64(len(dictionary))
+	}
+	// Reverse the string
+	runes := []rune(result.String())
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	// Generate 24 random characters
+	var randomChars string
+	for i := 0; i < 24; i++ {
+		randomIndex := rand.Intn(len(dictionary))
+		randomChars += string(dictionary[randomIndex])
+	}
+	// 5 + 24为随机字符也是从字典中取的
+	id_str := "chatcmpl-" + string(runes) + randomChars
+
+	return id_str
 }
 
 func OpenaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo, model string) (*dto.OpenAIErrorWithStatusCode, string, int) {
@@ -68,11 +105,11 @@ func OpenaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.
 			if data[:6] != "data: " && data[:6] != "[DONE]" {
 				continue
 			}
-			if !common.SafeSendStringTimeout(dataChan, data, constant.StreamingTimeout) {
-				// send data timeout, stop the stream
-				common.LogError(c, "send data timeout, stop the stream")
-				break
-			}
+			// if !common.SafeSendStringTimeout(dataChan, data, constant.StreamingTimeout) {
+			// 	// send data timeout, stop the stream
+			// 	common.LogError(c, "send data timeout, stop the stream")
+			// 	break
+			// }
 			data = data[6:]
 			if strings.HasPrefix(data, "[DONE]") {
 				common.SafeSendString(dataChan, "data: [DONE]")
@@ -87,6 +124,17 @@ func OpenaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.
 			if _, ok := jsonData["model"]; ok {
 				jsonData["model"] = modelName
 			}
+			// 如果包含system_fingerprint字段，就替换成fp_811936bd4f
+			if _, ok := jsonData["system_fingerprint"]; ok {
+				jsonData["system_fingerprint"] = "fp_811936bd4f"
+			}
+			createTime := time.Now().Unix()
+			if created, ok := jsonData["created"]; ok {
+				createTime = int64(created.(float64))
+			}
+			id_str := GenerateID(createTime)
+			jsonData["id"] = id_str
+
 			if choices, ok := jsonData["choices"].([]interface{}); ok {
 				for _, choice := range choices {
 					if choiceMap, ok := choice.(map[string]interface{}); ok {
@@ -289,6 +337,7 @@ func OpenaiStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.
 // }
 
 func OpenaiHandler(c *gin.Context, resp *http.Response, promptTokens int, model string, originModel string) (*dto.OpenAIErrorWithStatusCode, *dto.Usage) {
+
 	modelName := originModel
 	if v, ok := modelmapper[originModel]; ok {
 		fmt.Println("modelName is in modelmapper change to ", v)
@@ -330,6 +379,15 @@ func OpenaiHandler(c *gin.Context, resp *http.Response, promptTokens int, model 
 	delete(jsonResponse, "prompt_filter_results")
 	// 修改下model名称
 	jsonResponse["model"] = modelName
+	if _, ok := jsonResponse["system_fingerprint"]; ok {
+		jsonResponse["system_fingerprint"] = "fp_811936bd4f"
+	}
+	createTime := time.Now().Unix()
+	if created, ok := jsonResponse["created"]; ok {
+		createTime = int64(created.(float64))
+	}
+	id_str := GenerateID(createTime)
+	jsonResponse["id"] = id_str
 	// fmt.Println("modelName is ", modelName)
 	// fmt.Println("jsonResponse", jsonResponse)
 

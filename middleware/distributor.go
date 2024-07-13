@@ -98,12 +98,23 @@ func Distribute() func(c *gin.Context) {
 					}
 				}
 				// 如果 包含 logprobs 字段，查看是否是 NOR
-				if _, exists := requestData["logprobs"]; exists {
-					isNORLogprobs = true
+				if logprobs, exists := requestData["logprobs"]; exists {
+					// fmt.Println("logprobs: ", logprobs)
+					// 打印下 logprobs 的值
+					if logprobs == true {
+						isNORLogprobs = true
+					}
 				}
 				// 如果 包含 n 字段，如果不是 1， isNORLogprobs 为 true
 				if n, exists := requestData["n"]; exists {
-					if n != 1 {
+					// 转换成int类型,转换失败就是1
+					tmp_n, err := strconv.Atoi(fmt.Sprintf("%v", n))
+					if err != nil {
+						tmp_n = 1
+					}
+
+					fmt.Println("n: ", tmp_n)
+					if tmp_n != 1 {
 						isNORLogprobs = true
 					}
 				}
