@@ -130,7 +130,7 @@ func GetRandomSatisfiedChannel(group string, model string, retry int, isImage bo
 		channelQuery = channelQuery.Where("is_support_function_call = ?", true)
 	}
 	// 打印下 channelQuery
-	fmt.Println(channelQuery)
+	// fmt.Println(channelQuery)
 	if common.UsingSQLite || common.UsingPostgreSQL {
 		err = channelQuery.Order("weight DESC").Find(&abilities).Error
 	} else {

@@ -113,7 +113,7 @@ func Distribute() func(c *gin.Context) {
 						tmp_n = 1
 					}
 
-					fmt.Println("n: ", tmp_n)
+					// fmt.Println("n: ", tmp_n)
 					if tmp_n != 1 {
 						isNORLogprobs = true
 					}

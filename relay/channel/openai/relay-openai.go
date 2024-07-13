@@ -38,11 +38,11 @@ const (
 
 func GenerateID(timestamp int64) string {
 	timestamp -= 1567879599
-	fmt.Println(timestamp)
+	// fmt.Println(timestamp)
 	var result strings.Builder
 	for i := idLength - 1; i >= 0; i-- {
 		index := int(math.Mod(float64(timestamp), float64(len(dictionary))))
-		fmt.Println("index_1: ", index)
+		// fmt.Println("index_1: ", index)
 		result.WriteByte(dictionary[index-1])
 		timestamp = timestamp / int64(len(dictionary))
 	}

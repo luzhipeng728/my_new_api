@@ -204,6 +204,7 @@ func getPromptTokens(textRequest *dto.GeneralOpenAIRequest, info *relaycommon.Re
 		promptTokens = 0
 	}
 	info.PromptTokens = promptTokens
+	fmt.Println("promptTokens: ", promptTokens)
 	return promptTokens, err
 }
 

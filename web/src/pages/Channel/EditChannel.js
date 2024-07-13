@@ -87,7 +87,7 @@ const EditChannel = (props) => {
     max_input_tokens: 0,
     is_support_stream: false,
     is_support_system_prompt: false,
-    is_support_n_or_logprobs: false,
+    is_support_nor_logprobs: false,
     is_support_function_call: false,
     test_model: '',
     groups: ['default'],
@@ -97,7 +97,7 @@ const EditChannel = (props) => {
   const [max_input_tokens, setMaxInputTokens] = useState(0)
   const [is_support_stream, setIsSupportStream] = useState(false)
   const [is_support_system_prompt, setIsSupportSystemPrompt] = useState(false)
-  const [is_support_n_or_logprobs, setIsSupportNOrLogprobs] = useState(false)
+  const [is_support_nor_logprobs, setIsSupportNOrLogprobs] = useState(false)
   const [is_support_function_call, setIsSupportFunctionCall] = useState(false)
   const [autoBan, setAutoBan] = useState(true);
   // const [autoBan, setAutoBan] = useState(true);
@@ -207,8 +207,8 @@ const EditChannel = (props) => {
       if (data.is_support_system_prompt){
         setIsSupportSystemPrompt(data.is_support_system_prompt)
       }
-      if (data.is_support_n_or_logprobs){
-        setIsSupportNOrLogprobs(data.is_support_n_or_logprobs)
+      if (data.is_support_nor_logprobs){
+        setIsSupportNOrLogprobs(data.is_support_nor_logprobs)
       }
       if (data.is_support_function_call){
         setIsSupportFunctionCall(data.is_support_function_call)
@@ -373,7 +373,7 @@ const EditChannel = (props) => {
     localInputs.max_input_tokens = max_input_tokens;
     localInputs.is_support_stream = is_support_stream;
     localInputs.is_support_system_prompt = is_support_system_prompt;
-    localInputs.is_support_n_or_logprobs = is_support_n_or_logprobs;
+    localInputs.is_support_nor_logprobs = is_support_nor_logprobs;
     localInputs.is_support_function_call = is_support_function_call;
     localInputs.models = localInputs.models.join(',');
     localInputs.group = localInputs.groups.join(',');
@@ -878,12 +878,12 @@ const EditChannel = (props) => {
           <div style={{ marginTop: 10 , display: 'flex'}}>
             <Space>
               <Checkbox
-                checked={is_support_n_or_logprobs}
-                label='is_support_n_or_logprobs'
-                name='is_support_n_or_logprobs'
-                onChange={() => setIsSupportNOrLogprobs(!is_support_n_or_logprobs)}
+                checked={is_support_nor_logprobs}
+                label='is_support_nor_logprobs'
+                name='is_support_nor_logprobs'
+                onChange={() => setIsSupportNOrLogprobs(!is_support_nor_logprobs)}
               />
-              <Typography.Text strong>is_support_n_or_logprobs</Typography.Text>
+              <Typography.Text strong>is_support_nor_logprobs</Typography.Text>
             </Space>
           </div>
           <div style={{ marginTop: 10 , display: 'flex'}}>
