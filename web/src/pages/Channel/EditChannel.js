@@ -70,7 +70,8 @@ const EditChannel = (props) => {
     type: 1,
     key: '',
     openai_organization: '',
-    max_input_tokens: 0,
+    max_input_tokens_low: 0,
+    max_input_tokens_high: 9999999,
     base_url: '',
     other: '',
     model_mapping: '',
@@ -84,7 +85,6 @@ const EditChannel = (props) => {
 	// IsSupportSystemPrompt *bool  `json:"is_support_system_prompt" gorm:"default:false"`
 	// IsSupportNORLogprobs  *bool  `json:"is_support_nor_logprobs" gorm:"default:false"`
 	// IsSupportFunctionCall *bool  `json:"is_support_function_call" gorm:"default:false"`
-    max_input_tokens: 0,
     is_support_stream: false,
     is_support_system_prompt: false,
     is_support_nor_logprobs: false,
@@ -94,7 +94,8 @@ const EditChannel = (props) => {
   };
   const [batch, setBatch] = useState(false);
   const [is_image, setImage] = useState(false)
-  const [max_input_tokens, setMaxInputTokens] = useState(0)
+  const [max_input_tokens_low, setMaxInputTokensLow] = useState(0)
+  const [max_input_tokens_high, setMaxInputTokensHigh] = useState(9999999)
   const [is_support_stream, setIsSupportStream] = useState(false)
   const [is_support_system_prompt, setIsSupportSystemPrompt] = useState(false)
   const [is_support_nor_logprobs, setIsSupportNOrLogprobs] = useState(false)
@@ -198,8 +199,11 @@ const EditChannel = (props) => {
       } else {
         setImage(true);
       }
-      if (data.max_input_tokens){
-        setMaxInputTokens(data.max_input_tokens)
+      if (data.max_input_tokens_low){
+        setMaxInputTokensLow(data.max_input_tokens_low)
+      }
+      if (data.max_input_tokens_high){
+        setMaxInputTokensHigh(data.max_input_tokens_high)
       }
       if (data.is_support_stream){
         setIsSupportStream(data.is_support_stream)
@@ -370,7 +374,8 @@ const EditChannel = (props) => {
     }
     localInputs.auto_ban = autoBan ? 1 : 0;
     localInputs.is_image = is_image ? true : false;
-    localInputs.max_input_tokens = max_input_tokens;
+    localInputs.max_input_tokens_low = parseInt(max_input_tokens_low);
+    localInputs.max_input_tokens_high = parseInt(max_input_tokens_high);
     localInputs.is_support_stream = is_support_stream;
     localInputs.is_support_system_prompt = is_support_system_prompt;
     localInputs.is_support_nor_logprobs = is_support_nor_logprobs;
@@ -842,15 +847,29 @@ const EditChannel = (props) => {
           <div style={{ marginTop: 10 , display: 'flex'}}>
             <Space>
               <Input
-                label='最大请求token'
-                name='max_input_tokens'
-                placeholder='默认为0，表示不限制'
+                label='最小请求token'
+                name='max_input_tokens_low'
+                placeholder='最低下限'
                 onChange={(value) => {
-                  setMaxInputTokens(value);
+                  setMaxInputTokensLow(value);
                 }}
-                value={max_input_tokens}
+                value={max_input_tokens_low}
               />
-              <Typography.Text strong>最大请求token（0表示不限制）：</Typography.Text>
+              <Typography.Text strong>最小请求token</Typography.Text>
+            </Space>
+          </div>
+          <div style={{ marginTop: 10 , display: 'flex'}}>
+            <Space>
+              <Input
+                label='最大请求token'
+                name='max_input_tokens_high'
+                placeholder='最高上限'
+                onChange={(value) => {
+                  setMaxInputTokensHigh(value);
+                }}
+                value={max_input_tokens_high}
+              />
+              <Typography.Text strong>最大请求token</Typography.Text>
             </Space>
           </div>
           <div style={{ marginTop: 10 , display: 'flex'}}>

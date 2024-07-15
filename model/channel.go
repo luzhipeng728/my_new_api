@@ -27,7 +27,8 @@ type Channel struct {
 	Group                 string  `json:"group" gorm:"type:varchar(64);default:'default'"`
 	UsedQuota             int64   `json:"used_quota" gorm:"bigint;default:0"`
 	ModelMapping          *string `json:"model_mapping" gorm:"type:varchar(1024);default:''"`
-	MaxInputTokens        *int    `json:"max_input_tokens" gorm:"default:0"`
+	MaxInputTokensLow     *int    `json:"max_input_tokens_low" gorm:"default:0"`
+	MaxInputTokensHigh    *int    `json:"max_input_tokens_high" gorm:"default:0"`
 	StatusCodeMapping     *string `json:"status_code_mapping" gorm:"type:varchar(1024);default:''"`
 	Priority              *int64  `json:"priority" gorm:"bigint;default:0"`
 	AutoBan               *int    `json:"auto_ban" gorm:"default:1"`

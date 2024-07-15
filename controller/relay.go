@@ -48,6 +48,18 @@ func Relay(c *gin.Context) {
 	group := c.GetString("group")
 	originalModel := c.GetString("original_model")
 	openaiErr := relayHandler(c, relayMode)
+
+	input_tokens := 0
+	textRequest := &dto.GeneralOpenAIRequest{}
+	err := common.UnmarshalBodyReusable(c, textRequest)
+	if err == nil {
+		prompt_tokens, err := service.CountTokenChatRequest(*textRequest, textRequest.Model)
+		if err == nil {
+			input_tokens = prompt_tokens
+		}
+	}
+	fmt.Println("input_tokens: ", input_tokens)
+
 	c.Set("use_channel", []string{fmt.Sprintf("%d", channelId)})
 	if openaiErr != nil {
 		go processChannelError(c, channelId, channelType, openaiErr)
@@ -132,11 +144,12 @@ func Relay(c *gin.Context) {
 				}
 			}
 		}
-		channel, err := model.CacheGetRandomSatisfiedChannel(group, originalModel, i, isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall)
+		channel, err := model.CacheGetRandomSatisfiedChannel(group, originalModel, i, isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall, input_tokens)
 		if err != nil {
 			common.LogError(c.Request.Context(), fmt.Sprintf("CacheGetRandomSatisfiedChannel failed: %s", err.Error()))
 			break
 		}
+		fmt.Println("1: ")
 		channelId = channel.Id
 		useChannel := c.GetStringSlice("use_channel")
 		useChannel = append(useChannel, fmt.Sprintf("%d", channelId))
@@ -294,6 +307,18 @@ func RelayTask(c *gin.Context) {
 	if taskErr == nil {
 		retryTimes = 0
 	}
+
+	input_tokens := 0
+	textRequest := &dto.GeneralOpenAIRequest{}
+	err := common.UnmarshalBodyReusable(c, textRequest)
+	if err == nil {
+		prompt_tokens, err := service.CountTokenChatRequest(*textRequest, textRequest.Model)
+		if err == nil {
+			input_tokens = prompt_tokens
+		}
+	}
+	fmt.Println("input_tokens: ", input_tokens)
+
 	for i := 0; shouldRetryTaskRelay(c, channelId, taskErr, retryTimes) && i < retryTimes; i++ {
 		var bodyBytes []byte
 		if c.Request.Body != nil {
@@ -368,11 +393,13 @@ func RelayTask(c *gin.Context) {
 			}
 		}
 
-		channel, err := model.CacheGetRandomSatisfiedChannel(group, originalModel, i, isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall)
+		channel, err := model.CacheGetRandomSatisfiedChannel(group, originalModel, i, isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall, input_tokens)
 		if err != nil {
 			common.LogError(c.Request.Context(), fmt.Sprintf("CacheGetRandomSatisfiedChannel failed: %s", err.Error()))
 			break
 		}
+
+		fmt.Println("2: ")
 		channelId = channel.Id
 		useChannel := c.GetStringSlice("use_channel")
 		useChannel = append(useChannel, fmt.Sprintf("%d", channelId))

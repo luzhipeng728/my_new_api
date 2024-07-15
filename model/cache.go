@@ -266,9 +266,9 @@ func SyncChannelCache(frequency int) {
 	}
 }
 
-func CacheGetRandomSatisfiedChannel(group string, model string, retry int, IsImage bool, IsStream bool, IsSystemPrompt bool, IsNORLogprobs bool, IsFunctionCall bool) (*Channel, error) {
+func CacheGetRandomSatisfiedChannel(group string, model string, retry int, IsImage bool, IsStream bool, IsSystemPrompt bool, IsNORLogprobs bool, IsFunctionCall bool, inputTokens int) (*Channel, error) {
 	// 打印 isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall
-	fmt.Println("isImage:", IsImage, " isStream:", IsStream, " isSystemPrompt:", IsSystemPrompt, " isNORLogprobs:", IsNORLogprobs, " isFunctionCall:", IsFunctionCall)
+	fmt.Println("isImage:", IsImage, " isStream:", IsStream, " isSystemPrompt:", IsSystemPrompt, " isNORLogprobs:", IsNORLogprobs, " isFunctionCall:", IsFunctionCall, " inputTokens:", inputTokens)
 	if strings.HasPrefix(model, "gpt-4-gizmo") {
 		model = "gpt-4-gizmo-*"
 	}
@@ -276,7 +276,7 @@ func CacheGetRandomSatisfiedChannel(group string, model string, retry int, IsIma
 	// if memory cache is disabled, get channel directly from database
 	common.MemoryCacheEnabled = false
 	if !common.MemoryCacheEnabled {
-		return GetRandomSatisfiedChannel(group, model, retry, IsImage, IsStream, IsSystemPrompt, IsNORLogprobs, IsFunctionCall)
+		return GetRandomSatisfiedChannel(group, model, retry, IsImage, IsStream, IsSystemPrompt, IsNORLogprobs, IsFunctionCall, inputTokens)
 	}
 	channelSyncLock.RLock()
 	defer channelSyncLock.RUnlock()

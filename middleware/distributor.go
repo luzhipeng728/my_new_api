@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,12 +23,38 @@ type ModelRequest struct {
 	Model string `json:"model"`
 }
 
+func geTexttRequest(c *gin.Context) (*dto.GeneralOpenAIRequest, error) {
+	textRequest := &dto.GeneralOpenAIRequest{}
+	err := common.UnmarshalBodyReusable(c, textRequest)
+	if err != nil {
+		return nil, err
+	}
+	if textRequest.Messages == nil || len(textRequest.Messages) == 0 {
+		return nil, errors.New("field messages is required")
+	}
+	return textRequest, nil
+}
+
 func Distribute() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		userId := c.GetInt("id")
+		input_tokens := 0
+		textRequest, err := geTexttRequest(c)
+		if err != nil {
+			fmt.Println(err)
+		}
+		prompt_tokens, err := service.CountTokenChatRequest(*textRequest, textRequest.Model)
+		if err == nil {
+			input_tokens = prompt_tokens
+		}
+		fmt.Println("input_tokens: ", input_tokens)
+
 		var channel *model.Channel
 		channelId, ok := c.Get("specific_channel_id")
 		modelRequest, shouldSelectChannel, err := getModelRequest(c)
+		if err != nil {
+			fmt.Println(err)
+		}
 		userGroup, _ := model.CacheGetUserGroup(userId)
 		c.Set("group", userGroup)
 		if ok {
@@ -69,6 +96,7 @@ func Distribute() func(c *gin.Context) {
 				}
 			}
 			// 在不影响后续通过c.Request.Body 获取 body 的情况下，将 body 读取出来
+
 			// 读取 body
 			var bodyBytes []byte
 			if c.Request.Body != nil {
@@ -149,7 +177,9 @@ func Distribute() func(c *gin.Context) {
 				}
 			}
 			if shouldSelectChannel {
-				channel, err = model.CacheGetRandomSatisfiedChannel(userGroup, modelRequest.Model, 0, isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall)
+				channel, err = model.CacheGetRandomSatisfiedChannel(userGroup, modelRequest.Model, 0, isImage, isStream, isSystemPrompt, isNORLogprobs, isFunctionCall, input_tokens)
+
+				fmt.Println("3: ")
 				if err != nil {
 					message := fmt.Sprintf("当前分组 %s 下对于模型 %s 无可用渠道", userGroup, modelRequest.Model)
 					// 如果错误，但是渠道不为空，说明是数据库一致性问题

@@ -18,7 +18,8 @@ type Ability struct {
 	Priority              *int64 `json:"priority" gorm:"bigint;default:0;index"`
 	Weight                uint   `json:"weight" gorm:"default:0;index"`
 	IsImage               bool   `json:"is_image" gorm:"default:false"`
-	MaxInputTokens        *int   `json:"max_input_tokens" gorm:"default:0"`
+	MaxInputTokensLow     *int   `json:"max_input_tokens_low" gorm:"default:0"`
+	MaxInputTokensHigh    *int   `json:"max_input_tokens_high" gorm:"default:0"`
 	IsSupportStream       *bool  `json:"is_support_stream" gorm:"default:false"`
 	IsSupportSystemPrompt *bool  `json:"is_support_system_prompt" gorm:"default:false"`
 	IsSupportNORLogprobs  *bool  `json:"is_support_nor_logprobs" gorm:"default:false"`
@@ -100,7 +101,7 @@ func getChannelQuery(group string, model string, retry int) *gorm.DB {
 	return channelQuery
 }
 
-func GetRandomSatisfiedChannel(group string, model string, retry int, isImage bool, isStream bool, isSystemPrompt bool, isNORLogprobs bool, isFunctionCall bool) (*Channel, error) {
+func GetRandomSatisfiedChannel(group string, model string, retry int, isImage bool, isStream bool, isSystemPrompt bool, isNORLogprobs bool, isFunctionCall bool, inputTokens int) (*Channel, error) {
 	var abilities []Ability
 
 	var err error = nil
@@ -129,6 +130,8 @@ func GetRandomSatisfiedChannel(group string, model string, retry int, isImage bo
 	if isFunctionCall {
 		channelQuery = channelQuery.Where("is_support_function_call = ?", true)
 	}
+	// 这里是根据 inputTokens 过滤
+	channelQuery = channelQuery.Where("max_input_tokens_low <= ? and max_input_tokens_high >= ?", inputTokens, inputTokens)
 	// 打印下 channelQuery
 	// fmt.Println(channelQuery)
 	if common.UsingSQLite || common.UsingPostgreSQL {
@@ -181,7 +184,8 @@ func (channel *Channel) AddAbilities() error {
 				IsSupportSystemPrompt: channel.IsSupportSystemPrompt,
 				IsSupportNORLogprobs:  channel.IsSupportNORLogprobs,
 				IsSupportFunctionCall: channel.IsSupportFunctionCall,
-				MaxInputTokens:        channel.MaxInputTokens,
+				MaxInputTokensLow:     channel.MaxInputTokensLow,
+				MaxInputTokensHigh:    channel.MaxInputTokensHigh,
 			}
 			abilities = append(abilities, ability)
 		}
